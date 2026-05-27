@@ -59,7 +59,7 @@ export async function handleSearchCompanies(
   try {
     let query = supabase
       .from("companies")
-      .select("id, name, address, work_type_ids, evidence_level")
+      .select("id, company_name, address, work_type_ids")
       .eq("is_active", true)
       .limit(actualLimit);
 
@@ -96,10 +96,9 @@ export async function handleSearchCompanies(
     }
 
     const companies = data.map((company) => ({
-      name: company.name,
+      name: company.company_name,
       address: company.address || "住所未登録",
       work_types: company.work_type_ids || [],
-      evidence_level: company.evidence_level || "unknown",
       detail_url: `https://tsukuras.jp/companies/${company.id}?utm_source=mcp`,
     }));
 
