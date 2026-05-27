@@ -1,0 +1,21 @@
+{
+  "name": "tsukuras-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server providing Tsukuras construction industry data",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "latest",
+    "agents": "latest",
+    "zod": "latest"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "latest",
+    "typescript": "latest",
+    "wrangler": "latest"
+  }
+}

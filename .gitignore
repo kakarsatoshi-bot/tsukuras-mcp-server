@@ -34,3 +34,11 @@ desktop.ini
 .coverage
 htmlcov/
 .pytest_cache/
+
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Wrangler
+.wrangler/
+.dev.vars

@@ -1,0 +1,15 @@
+name = "tsukuras-mcp-server"
+main = "src-ts/index.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[observability]
+enabled = true
+
+[[durable_objects.bindings]]
+name = "TsukurasMcpAgent"
+class_name = "TsukurasMcpAgent"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["TsukurasMcpAgent"]
