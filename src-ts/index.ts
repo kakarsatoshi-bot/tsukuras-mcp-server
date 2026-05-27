@@ -1,6 +1,6 @@
 /**
- * Tsukuras MCP Server v0.2.0
- * Session 2-B: search_companies + get_area_stats を追加
+ * Tsukuras MCP Server v0.3.0
+ * Session 3-B: get_work_category を追加
  */
 
 import { McpAgent } from "agents/mcp";
@@ -11,6 +11,7 @@ import { createClient } from "@supabase/supabase-js";
 import { pingToolDefinition, handlePing } from "./tools/ping";
 import { handleSearchCompanies } from "./tools/search_companies";
 import { handleGetAreaStats } from "./tools/get_area_stats";
+import { handleGetWorkCategory } from "./tools/get_work_category";
 
 export interface Env {
   TsukurasMcpAgent: DurableObjectNamespace;
@@ -19,7 +20,7 @@ export interface Env {
 }
 
 export class TsukurasMcpAgent extends McpAgent<Env> {
-  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.2.0" });
+  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.3.0" });
 
   async init() {
     const supabase = createClient(
@@ -70,13 +71,38 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
       {
         description:
           "北海道の特定の市町村における建設業の統計情報を取得します。" +
-          "企業数、人口、証拠強度の内訳などのサマリーを返します。",
+          "企業数などのサマリーを返します。",
         inputSchema: {
           area: z.string().describe("市町村名（例：旭川市、札幌市、帯広市）"),
         },
       },
       async ({ area }) => ({
         content: [{ type: "text", text: await handleGetAreaStats({ area }, supabase) }],
+      })
+    );
+
+    // get_work_category
+    this.server.registerTool(
+      "get_work_category",
+      {
+        description:
+          "北海道建設業の工事カテゴリ情報を取得します。" +
+          "工事の説明、対応企業数、Tsukurasの詳細ページへのリンクを返します。" +
+          "slugまたは日本語の工事名で検索できます。" +
+          "例：paving（舗装工事）、general-civil（土木一般）、building（建築工事）",
+        inputSchema: {
+          work_category: z.string().describe(
+            "工事カテゴリのslugまたは日本語名（例：paving / 舗装工事）"
+          ),
+        },
+      },
+      async ({ work_category }) => ({
+        content: [
+          {
+            type: "text",
+            text: await handleGetWorkCategory({ work_category }, supabase),
+          },
+        ],
       })
     );
   }
@@ -99,8 +125,8 @@ export default {
         JSON.stringify({
           status: "ok",
           server: "tsukuras-mcp-server",
-          version: "0.2.0",
-          tools: ["ping", "search_companies", "get_area_stats"],
+          version: "0.3.0",
+          tools: ["ping", "search_companies", "get_area_stats", "get_work_category"],
           website: "https://tsukuras.jp",
         }),
         { headers: { "Content-Type": "application/json" } }
@@ -111,7 +137,7 @@ export default {
       return new Response(
         JSON.stringify({
           name: "Tsukuras MCP Server",
-          version: "0.2.0",
+          version: "0.3.0",
           mcp_endpoint: "/mcp",
           health_endpoint: "/health",
           website: "https://tsukuras.jp",
