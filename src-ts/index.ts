@@ -1,6 +1,6 @@
 /**
- * Tsukuras MCP Server v0.4.0
- * Session D: list_work_categories を追加
+ * Tsukuras MCP Server v0.5.0
+ * Session E: クエリログ（Cloudflare Workers Logs）追加
  */
 
 import { McpAgent } from "agents/mcp";
@@ -13,6 +13,7 @@ import { handleSearchCompanies } from "./tools/search_companies";
 import { handleGetAreaStats } from "./tools/get_area_stats";
 import { handleGetWorkCategory } from "./tools/get_work_category";
 import { listWorkCategoriesToolDefinition, handleListWorkCategories } from "./tools/list_work_categories";
+import { withLogging } from "./utils/logger";
 
 export interface Env {
   TsukurasMcpAgent: DurableObjectNamespace;
@@ -21,7 +22,7 @@ export interface Env {
 }
 
 export class TsukurasMcpAgent extends McpAgent<Env> {
-  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.4.0" });
+  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.5.0" });
 
   async init() {
     const supabase = createClient(
@@ -38,7 +39,14 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
         inputSchema: { message: z.string().optional() },
       },
       async ({ message }) => ({
-        content: [{ type: "text", text: await handlePing({ message }) }],
+        content: [
+          {
+            type: "text",
+            text: await withLogging("ping", { message }, () =>
+              handlePing({ message })
+            ),
+          },
+        ],
       })
     );
 
@@ -60,7 +68,11 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
         content: [
           {
             type: "text",
-            text: await handleSearchCompanies({ area, work_category, limit }, supabase),
+            text: await withLogging(
+              "search_companies",
+              { area, work_category, limit },
+              () => handleSearchCompanies({ area, work_category, limit }, supabase)
+            ),
           },
         ],
       })
@@ -78,7 +90,16 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
         },
       },
       async ({ area }) => ({
-        content: [{ type: "text", text: await handleGetAreaStats({ area }, supabase) }],
+        content: [
+          {
+            type: "text",
+            text: await withLogging(
+              "get_area_stats",
+              { area },
+              () => handleGetAreaStats({ area }, supabase)
+            ),
+          },
+        ],
       })
     );
 
@@ -101,7 +122,11 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
         content: [
           {
             type: "text",
-            text: await handleGetWorkCategory({ work_category }, supabase),
+            text: await withLogging(
+              "get_work_category",
+              { work_category },
+              () => handleGetWorkCategory({ work_category }, supabase)
+            ),
           },
         ],
       })
@@ -115,7 +140,16 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
         inputSchema: {},
       },
       async () => ({
-        content: [{ type: "text", text: await handleListWorkCategories(supabase) }],
+        content: [
+          {
+            type: "text",
+            text: await withLogging(
+              "list_work_categories",
+              {},
+              () => handleListWorkCategories(supabase)
+            ),
+          },
+        ],
       })
     );
   }
@@ -138,7 +172,7 @@ export default {
         JSON.stringify({
           status: "ok",
           server: "tsukuras-mcp-server",
-          version: "0.4.0",
+          version: "0.5.0",
           tools: ["ping", "search_companies", "get_area_stats", "get_work_category", "list_work_categories"],
           website: "https://tsukuras.jp",
         }),
@@ -150,7 +184,7 @@ export default {
       return new Response(
         JSON.stringify({
           name: "Tsukuras MCP Server",
-          version: "0.4.0",
+          version: "0.5.0",
           mcp_endpoint: "/mcp",
           health_endpoint: "/health",
           website: "https://tsukuras.jp",
