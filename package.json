@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",
+    "@supabase/supabase-js": "^2.106.2",
     "agents": "latest",
     "zod": "latest"
   },
