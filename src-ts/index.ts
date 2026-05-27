@@ -1,6 +1,6 @@
 /**
- * Tsukuras MCP Server v0.3.0
- * Session 3-B: get_work_category を追加
+ * Tsukuras MCP Server v0.4.0
+ * Session D: list_work_categories を追加
  */
 
 import { McpAgent } from "agents/mcp";
@@ -12,6 +12,7 @@ import { pingToolDefinition, handlePing } from "./tools/ping";
 import { handleSearchCompanies } from "./tools/search_companies";
 import { handleGetAreaStats } from "./tools/get_area_stats";
 import { handleGetWorkCategory } from "./tools/get_work_category";
+import { listWorkCategoriesToolDefinition, handleListWorkCategories } from "./tools/list_work_categories";
 
 export interface Env {
   TsukurasMcpAgent: DurableObjectNamespace;
@@ -20,7 +21,7 @@ export interface Env {
 }
 
 export class TsukurasMcpAgent extends McpAgent<Env> {
-  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.3.0" });
+  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.4.0" });
 
   async init() {
     const supabase = createClient(
@@ -105,6 +106,18 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
         ],
       })
     );
+
+    // list_work_categories
+    this.server.registerTool(
+      listWorkCategoriesToolDefinition.name,
+      {
+        description: listWorkCategoriesToolDefinition.description,
+        inputSchema: {},
+      },
+      async () => ({
+        content: [{ type: "text", text: await handleListWorkCategories(supabase) }],
+      })
+    );
   }
 }
 
@@ -125,8 +138,8 @@ export default {
         JSON.stringify({
           status: "ok",
           server: "tsukuras-mcp-server",
-          version: "0.3.0",
-          tools: ["ping", "search_companies", "get_area_stats", "get_work_category"],
+          version: "0.4.0",
+          tools: ["ping", "search_companies", "get_area_stats", "get_work_category", "list_work_categories"],
           website: "https://tsukuras.jp",
         }),
         { headers: { "Content-Type": "application/json" } }
@@ -137,7 +150,7 @@ export default {
       return new Response(
         JSON.stringify({
           name: "Tsukuras MCP Server",
-          version: "0.3.0",
+          version: "0.4.0",
           mcp_endpoint: "/mcp",
           health_endpoint: "/health",
           website: "https://tsukuras.jp",
