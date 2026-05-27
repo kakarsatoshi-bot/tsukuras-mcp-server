@@ -1,0 +1,28 @@
+version: 1
+name: tsukuras-mcp-server
+displayName: "Tsukuras MCP Server"
+description: "Access Hokkaido's construction industry database — 7,400+ companies across 179 municipalities — through AI agents via MCP."
+category: data
+tags:
+  - japan
+  - hokkaido
+  - construction
+  - database
+  - regional-data
+  - real-estate
+  - infrastructure
+
+# Remote MCP server (Cloudflare Workers)
+install:
+  type: remote
+  url: https://tsukuras-mcp-server.tsukuras-jp.workers.dev/mcp
+
+# Metadata
+author: Tsukuras
+homepage: https://tsukuras.jp
+repository: https://github.com/kakarsatoshi-bot/tsukuras-mcp-server
+license: MIT
+
+# Documentation
+documentation:
+  readme: README.md
