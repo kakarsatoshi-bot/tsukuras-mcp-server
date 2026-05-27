@@ -60,7 +60,7 @@ export async function handleSearchCompanies(
     let query = supabase
       .from("companies")
       .select("id, company_name, address, work_type_ids, prefecture, city")
-      .eq("status", "active")
+      .eq("status", "基本情報")
       .limit(actualLimit);
 
     if (area) {

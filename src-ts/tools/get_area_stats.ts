@@ -61,7 +61,7 @@ export async function handleGetAreaStats(
     const { count: totalCompanies } = await supabase
       .from("companies")
       .select("id", { count: "exact", head: true })
-      .eq("status", "active")
+      .eq("status", "基本情報")
       .or(`address.ilike.%${areaData.city}%,city.ilike.%${areaData.city}%`);
 
     return JSON.stringify(
