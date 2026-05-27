@@ -59,12 +59,12 @@ export async function handleSearchCompanies(
   try {
     let query = supabase
       .from("companies")
-      .select("id, company_name, address, work_type_ids")
-      .eq("is_active", true)
+      .select("id, company_name, address, work_type_ids, prefecture, city")
+      .eq("status", "active")
       .limit(actualLimit);
 
     if (area) {
-      query = query.ilike("address", `%${area}%`);
+      query = query.or(`address.ilike.%${area}%,city.ilike.%${area}%`);
     }
 
     if (work_category) {
@@ -97,7 +97,7 @@ export async function handleSearchCompanies(
 
     const companies = data.map((company) => ({
       name: company.company_name,
-      address: company.address || "住所未登録",
+      address: company.address || `${company.prefecture || "北海道"}${company.city || ""}`,
       work_types: company.work_type_ids || [],
       detail_url: `https://tsukuras.jp/companies/${company.id}?utm_source=mcp`,
     }));
@@ -119,7 +119,11 @@ export async function handleSearchCompanies(
     );
   } catch (err) {
     return JSON.stringify({
-      error: { code: "UNEXPECTED_ERROR", message: "予期しないエラーが発生しました。", detail: String(err) },
+      error: {
+        code: "UNEXPECTED_ERROR",
+        message: "予期しないエラーが発生しました。",
+        detail: String(err),
+      },
     });
   }
 }

@@ -9,7 +9,7 @@ export const getAreaStatsToolDefinition = {
   name: "get_area_stats",
   description:
     "北海道の特定の市町村における建設業の統計情報を取得します。" +
-    "企業数、人口、証拠強度の内訳などのサマリーを返します。",
+    "企業数などのサマリーを返します。",
   inputSchema: {
     type: "object" as const,
     properties: {
@@ -39,11 +39,11 @@ export async function handleGetAreaStats(
   }
 
   try {
+    // areasテーブルから地域情報を取得（is_activeフィルタは使用しない）
     const { data: areaData, error: areaError } = await supabase
       .from("areas")
       .select("id, city, prefecture, population, slug")
       .ilike("city", `%${area}%`)
-      .eq("is_active", true)
       .limit(1)
       .single();
 
@@ -57,25 +57,12 @@ export async function handleGetAreaStats(
       });
     }
 
+    // companiesテーブルはstatusカラムを使用
     const { count: totalCompanies } = await supabase
       .from("companies")
       .select("id", { count: "exact", head: true })
-      .eq("is_active", true)
-      .ilike("address", `%${areaData.city}%`);
-
-    const { data: evidenceData } = await supabase
-      .from("companies")
-      .select("evidence_level")
-      .eq("is_active", true)
-      .ilike("address", `%${areaData.city}%`);
-
-    const evidenceDistribution = { strong: 0, medium: 0, weak: 0 };
-    if (evidenceData) {
-      evidenceData.forEach((c) => {
-        const level = c.evidence_level as keyof typeof evidenceDistribution;
-        if (level in evidenceDistribution) evidenceDistribution[level]++;
-      });
-    }
+      .eq("status", "active")
+      .or(`address.ilike.%${areaData.city}%,city.ilike.%${areaData.city}%`);
 
     return JSON.stringify(
       {
@@ -83,7 +70,6 @@ export async function handleGetAreaStats(
         prefecture: areaData.prefecture || "北海道",
         population: areaData.population || null,
         total_companies: totalCompanies || 0,
-        evidence_distribution: evidenceDistribution,
         detail_url: `https://tsukuras.jp/areas/${areaData.slug}?utm_source=mcp`,
         _meta: {
           powered_by: "Tsukuras",
