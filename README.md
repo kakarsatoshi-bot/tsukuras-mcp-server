@@ -1,5 +1,7 @@
 # Tsukuras MCP Server
 
+[![Smithery Badge](https://smithery.ai/badge/@kakar-satoshi/tsukuras-mcp-server)](https://smithery.ai/server/kakar-satoshi/tsukuras-mcp-server)
+
 > Access Hokkaido's construction industry database through AI agents like Claude, ChatGPT, and Gemini.
 
 [![MCP](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io/)
