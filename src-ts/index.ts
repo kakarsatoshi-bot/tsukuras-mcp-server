@@ -1,6 +1,6 @@
 /**
- * Tsukuras MCP Server v0.5.0
- * Session E: クエリログ（Cloudflare Workers Logs）追加
+ * Tsukuras MCP Server v0.6.0
+ * Added annotations and improved parameter descriptions for Smithery quality score
  */
 
 import { McpAgent } from "agents/mcp";
@@ -9,9 +9,9 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 
 import { pingToolDefinition, handlePing } from "./tools/ping";
-import { handleSearchCompanies } from "./tools/search_companies";
-import { handleGetAreaStats } from "./tools/get_area_stats";
-import { handleGetWorkCategory } from "./tools/get_work_category";
+import { searchCompaniesToolDefinition, handleSearchCompanies } from "./tools/search_companies";
+import { getAreaStatsToolDefinition, handleGetAreaStats } from "./tools/get_area_stats";
+import { getWorkCategoryToolDefinition, handleGetWorkCategory } from "./tools/get_work_category";
 import { listWorkCategoriesToolDefinition, handleListWorkCategories } from "./tools/list_work_categories";
 import { withLogging } from "./utils/logger";
 
@@ -22,7 +22,10 @@ export interface Env {
 }
 
 export class TsukurasMcpAgent extends McpAgent<Env> {
-  server = new McpServer({ name: "tsukuras-mcp-server", version: "0.5.0" });
+  server = new McpServer({
+    name: "tsukuras-mcp-server",
+    version: "0.6.0",
+  });
 
   async init() {
     const supabase = createClient(
@@ -36,15 +39,21 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
       pingToolDefinition.name,
       {
         description: pingToolDefinition.description,
-        inputSchema: { message: z.string().optional() },
+        inputSchema: {
+          message: z.string().optional().describe("Optional message to echo back"),
+        },
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async ({ message }) => ({
         content: [
           {
             type: "text",
-            text: await withLogging("ping", { message }, () =>
-              handlePing({ message })
-            ),
+            text: await withLogging("ping", { message }, () => handlePing({ message })),
           },
         ],
       })
@@ -52,16 +61,19 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
 
     // search_companies
     this.server.registerTool(
-      "search_companies",
+      searchCompaniesToolDefinition.name,
       {
-        description:
-          "北海道の建設業企業を地域・工事カテゴリで検索します。" +
-          "地域名（市町村名）または工事カテゴリslugのどちらかは必須です。" +
-          "例：旭川市の舗装工事会社を最大10社返します。",
+        description: searchCompaniesToolDefinition.description,
         inputSchema: {
-          area: z.string().optional().describe("市町村名（例：旭川市、札幌市、帯広市）"),
-          work_category: z.string().optional().describe("工事カテゴリのslug（例：paving=舗装工事）"),
+          area: z.string().optional().describe("市町村名（例：旭川市、札幌市、帯広市）。部分一致で検索します。"),
+          work_category: z.string().optional().describe("工事カテゴリのslug（例：paving=舗装工事、general-civil=土木一般）。"),
           limit: z.number().optional().describe("返す件数の上限（デフォルト10、最大50）"),
+        },
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
       async ({ area, work_category, limit }) => ({
@@ -80,13 +92,17 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
 
     // get_area_stats
     this.server.registerTool(
-      "get_area_stats",
+      getAreaStatsToolDefinition.name,
       {
-        description:
-          "北海道の特定の市町村における建設業の統計情報を取得します。" +
-          "企業数などのサマリーを返します。",
+        description: getAreaStatsToolDefinition.description,
         inputSchema: {
           area: z.string().describe("市町村名（例：旭川市、札幌市、帯広市）"),
+        },
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
       async ({ area }) => ({
@@ -105,17 +121,17 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
 
     // get_work_category
     this.server.registerTool(
-      "get_work_category",
+      getWorkCategoryToolDefinition.name,
       {
-        description:
-          "北海道建設業の工事カテゴリ情報を取得します。" +
-          "工事の説明、対応企業数、Tsukurasの詳細ページへのリンクを返します。" +
-          "slugまたは日本語の工事名で検索できます。" +
-          "例：paving（舗装工事）、general-civil（土木一般）、building（建築工事）",
+        description: getWorkCategoryToolDefinition.description,
         inputSchema: {
-          work_category: z.string().describe(
-            "工事カテゴリのslugまたは日本語名（例：paving / 舗装工事）"
-          ),
+          work_category: z.string().describe("工事カテゴリのslugまたは日本語名（例：paving / 舗装工事、general-civil / 土木一般）"),
+        },
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
         },
       },
       async ({ work_category }) => ({
@@ -138,6 +154,12 @@ export class TsukurasMcpAgent extends McpAgent<Env> {
       {
         description: listWorkCategoriesToolDefinition.description,
         inputSchema: {},
+        annotations: {
+          readOnlyHint: true,
+          destructiveHint: false,
+          idempotentHint: true,
+          openWorldHint: false,
+        },
       },
       async () => ({
         content: [
@@ -172,7 +194,7 @@ export default {
         JSON.stringify({
           status: "ok",
           server: "tsukuras-mcp-server",
-          version: "0.5.0",
+          version: "0.6.0",
           tools: ["ping", "search_companies", "get_area_stats", "get_work_category", "list_work_categories"],
           website: "https://tsukuras.jp",
         }),
@@ -184,7 +206,7 @@ export default {
       return new Response(
         JSON.stringify({
           name: "Tsukuras MCP Server",
-          version: "0.5.0",
+          version: "0.6.0",
           mcp_endpoint: "/mcp",
           health_endpoint: "/health",
           website: "https://tsukuras.jp",
