@@ -8,9 +8,9 @@ import { SupabaseClient } from "@supabase/supabase-js";
 export const listWorkCategoriesToolDefinition = {
   name: "list_work_categories",
   description:
-    "北海道建設業の工事カテゴリ一覧を取得します。" +
-    "全16種類のカテゴリのslug・日本語名・対応企業数を一覧で返します。" +
-    "「どんな工事カテゴリがある？」「工事の種類を教えて」といった質問に答えます。",
+    "List all construction work categories available in Hokkaido, Japan. " +
+    "Returns slug, Japanese name, and company count for each category. " +
+    "Use this to discover valid category values before calling search_companies or get_work_category.",
   inputSchema: {
     type: "object" as const,
     properties: {},

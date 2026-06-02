@@ -8,18 +8,15 @@ import { SupabaseClient } from "@supabase/supabase-js";
 export const getWorkCategoryToolDefinition = {
   name: "get_work_category",
   description:
-    "北海道建設業の工事カテゴリ情報を取得します。" +
-    "工事の説明、対応企業数、Tsukurasの詳細ページへのリンクを返します。" +
-    "slugまたは日本語の工事名で検索できます。" +
-    "例：paving（舗装工事）、general-civil（土木一般）、building（建築工事）",
+    "Get details for a specific construction work category in Hokkaido, Japan. " +
+    "Returns category description, total matching company count, and links to Tsukuras detail and search pages. " +
+    "Accepts both English slug (e.g. 'paving') and Japanese name (e.g. '舗装工事').",
   inputSchema: {
     type: "object" as const,
     properties: {
       work_category: {
         type: "string",
-        description:
-          "工事カテゴリのslugまたは日本語名。" +
-          "例：paving / 舗装工事、general-civil / 土木一般、building / 建築工事",
+        description: "Work category slug or Japanese name (e.g. 'paving' / '舗装工事', 'general-civil' / '土木一般', 'building' / '建築工事')",
       },
     },
     required: ["work_category"],

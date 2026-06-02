@@ -8,14 +8,14 @@ import { SupabaseClient } from "@supabase/supabase-js";
 export const getAreaStatsToolDefinition = {
   name: "get_area_stats",
   description:
-    "北海道の特定の市町村における建設業の統計情報を取得します。" +
-    "企業数などのサマリーを返します。",
+    "Get construction industry statistics for a specific municipality in Hokkaido, Japan. " +
+    "Returns total company count, population, and a link to the Tsukuras area detail page.",
   inputSchema: {
     type: "object" as const,
     properties: {
       area: {
         type: "string",
-        description: "市町村名（例：旭川市、札幌市、帯広市）",
+        description: "Municipality name in Hokkaido (e.g. '旭川市', '札幌市', '帯広市')",
       },
     },
     required: ["area"],

@@ -8,24 +8,24 @@ import { SupabaseClient } from "@supabase/supabase-js";
 export const searchCompaniesToolDefinition = {
   name: "search_companies",
   description:
-    "北海道の建設業企業を地域・工事カテゴリで検索します。" +
-    "地域名（市町村名）または工事カテゴリslugのどちらかは必須です。" +
-    "例：旭川市の舗装工事会社を最大10社返します。",
+    "Search construction companies in Hokkaido, Japan by municipality and work category. " +
+    "Returns company names, addresses, work types, and detail URLs. " +
+    "At least one of area or work_category is required. " +
+    "Example: find paving contractors in Asahikawa.",
   inputSchema: {
     type: "object" as const,
     properties: {
       area: {
         type: "string",
-        description: "市町村名（例：旭川市、札幌市、帯広市）。部分一致で検索します。",
+        description: "Municipality name in Hokkaido (e.g. '旭川市', '札幌市', '帯広市'). Supports partial match.",
       },
       work_category: {
         type: "string",
-        description:
-          "工事カテゴリのslug（例：paving=舗装工事、general-civil=土木一般）。",
+        description: "Work category slug (e.g. 'paving' for 舗装工事, 'general-civil' for 土木一般). Use list_work_categories to see all valid slugs.",
       },
       limit: {
         type: "number",
-        description: "返す件数の上限（デフォルト10、最大50）",
+        description: "Maximum number of results to return (default 10, max 50)",
       },
     },
     required: [],
