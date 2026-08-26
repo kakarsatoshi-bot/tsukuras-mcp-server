@@ -151,9 +151,11 @@ export async function handleSearchCompanies(
  * more_results_url を実在するページに向ける。
  * tsukuras 側に `/search` ルートは存在しないため、受け皿は次の2つだけ:
  *   - 企業一覧 `/companies`（city / status / info / q / page を解釈する）
- *   - 工事カテゴリ一覧 `/works/`
+ *   - 工事カテゴリ `/works` および `/works/{slug}`
  * area と work_category の両方が指定された場合は、実際に絞り込みが効く
- * `/companies?city=` を優先する（`/works/` は絞り込みパラメータを持たないため）。
+ * `/companies?city=` を優先する（`/works` 側は絞り込みパラメータを持たないため）。
+ * tsukuras の next.config.ts は trailingSlash 未設定（既定 false）なので、
+ * 末尾スラッシュ付き（`/works/`）はリダイレクトされる。正規形の `/works` を配る。
  */
 function buildSearchUrl(area?: string, workCategory?: string): string {
   if (area) {
@@ -164,7 +166,11 @@ function buildSearchUrl(area?: string, workCategory?: string): string {
   }
 
   if (workCategory) {
-    return "https://tsukuras.jp/works/?utm_source=mcp";
+    const slug = workCategory.trim();
+    // slug が取れないときだけカテゴリ一覧トップにフォールバックする。
+    return slug
+      ? `https://tsukuras.jp/works/${encodeURIComponent(slug)}?utm_source=mcp`
+      : "https://tsukuras.jp/works?utm_source=mcp";
   }
 
   return "https://tsukuras.jp/companies?utm_source=mcp";

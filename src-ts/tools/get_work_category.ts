@@ -89,7 +89,7 @@ export async function handleGetWorkCategory(
         description: workData.description || "説明文は準備中です。",
         total_companies: totalCompanies || 0,
         detail_url: `https://tsukuras.jp/works/${workData.slug}?utm_source=mcp`,
-        search_url: `https://tsukuras.jp/search?work=${workData.slug}&utm_source=mcp`,
+        search_url: `https://tsukuras.jp/works/${workData.slug}?utm_source=mcp`,
         _meta: {
           powered_by: "Tsukuras",
           website: "https://tsukuras.jp",
