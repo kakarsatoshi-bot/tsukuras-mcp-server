@@ -59,7 +59,7 @@ export async function handleSearchCompanies(
   try {
     let query = supabase
       .from("companies")
-      .select("id, company_name, address, work_type_ids, prefecture, city")
+      .select("id, slug, company_name, address, work_type_ids, prefecture, city")
       .eq("status", "基本情報")
       .limit(actualLimit);
 
@@ -95,18 +95,37 @@ export async function handleSearchCompanies(
       });
     }
 
-    const companies = data.map((company) => ({
-      name: company.company_name,
-      address: company.address || `${company.prefecture || "北海道"}${company.city || ""}`,
-      work_types: company.work_type_ids || [],
-      detail_url: `https://tsukuras.jp/companies/${company.id}?utm_source=mcp`,
-    }));
+    // detail_url は companies.slug で組む（サイト側が slug で企業ページを引くため）。
+    // slug が空／NULL の行は 404 になるURLを返さず、キー自体を省く。
+    let omittedDetailUrlCount = 0;
+
+    const companies = data.map((company) => {
+      const base = {
+        name: company.company_name,
+        address: company.address || `${company.prefecture || "北海道"}${company.city || ""}`,
+        work_types: company.work_type_ids || [],
+      };
+
+      const slug = typeof company.slug === "string" ? company.slug.trim() : "";
+      if (!slug) {
+        omittedDetailUrlCount++;
+        return base;
+      }
+
+      return {
+        ...base,
+        detail_url: `https://tsukuras.jp/companies/${encodeURIComponent(slug)}?utm_source=mcp`,
+      };
+    });
 
     return JSON.stringify(
       {
         total_count: data.length,
         returned_count: companies.length,
         companies,
+        ...(omittedDetailUrlCount > 0
+          ? { omitted_detail_url_count: omittedDetailUrlCount }
+          : {}),
         more_results_url: buildSearchUrl(area, work_category),
         _meta: {
           powered_by: "Tsukuras",
@@ -128,10 +147,25 @@ export async function handleSearchCompanies(
   }
 }
 
+/**
+ * more_results_url を実在するページに向ける。
+ * tsukuras 側に `/search` ルートは存在しないため、受け皿は次の2つだけ:
+ *   - 企業一覧 `/companies`（city / status / info / q / page を解釈する）
+ *   - 工事カテゴリ一覧 `/works/`
+ * area と work_category の両方が指定された場合は、実際に絞り込みが効く
+ * `/companies?city=` を優先する（`/works/` は絞り込みパラメータを持たないため）。
+ */
 function buildSearchUrl(area?: string, workCategory?: string): string {
-  const params = new URLSearchParams();
-  if (area) params.set("area", area);
-  if (workCategory) params.set("work", workCategory);
-  params.set("utm_source", "mcp");
-  return `https://tsukuras.jp/search?${params.toString()}`;
+  if (area) {
+    const params = new URLSearchParams();
+    params.set("city", area);
+    params.set("utm_source", "mcp");
+    return `https://tsukuras.jp/companies?${params.toString()}`;
+  }
+
+  if (workCategory) {
+    return "https://tsukuras.jp/works/?utm_source=mcp";
+  }
+
+  return "https://tsukuras.jp/companies?utm_source=mcp";
 }
